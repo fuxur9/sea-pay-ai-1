@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "name": "Quick Approve/Reject",
+  "template": "{\"type\":\"Card\",\"size\":\"lg\",\"confirm\":{\"label\":\"Approve\",\"action\":{\"type\":\"request.approve\"}},\"cancel\":{\"label\":\"Reject\",\"action\":{\"type\":\"request.reject\"}},\"children\":[{\"type\":\"Col\",\"align\":\"center\",\"gap\":2,\"padding\":{\"y\":3},\"children\":[{\"type\":\"Text\",\"value\":{{ (question) | tojson }},\"maxLines\":3}]}]}",
+  "jsonSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "question"
+    ],
+    "additionalProperties": false
+  },
+  "outputJsonPreview": {
+    "type": "Card",
+    "size": "lg",
+    "confirm": {
+      "label": "Approve",
+      "action": {
+        "type": "request.approve"
+      }
+    },
+    "cancel": {
+      "label": "Reject",
+      "action": {
+        "type": "request.reject"
+      }
+    },
+    "children": [
+      {
+        "type": "Col",
+        "align": "center",
+        "gap": 2,
+        "padding": {
+          "y": 3
+        },
+        "children": [
+          {
+            "type": "Text",
+            "value": "do you want to approve SeaPay to perform this action by calling this mcp tool?",
+            "maxLines": 3
+          }
+        ]
+      }
+    ]
+  },
+  "encodedWidget": "eyJpZCI6IjExM2Y2YmM4LTg5NzItNGU2Ny1hYmMyLTkzMDA5ZTVjNzRjYiIsIm5hbWUiOiJRdWljayBBcHByb3ZlL1JlamVjdCIsInZpZXciOiI8Q2FyZFxuICBzaXplPVwibGdcIlxuICBjb25maXJtPXt7IGxhYmVsOiBcIkFwcHJvdmVcIiwgYWN0aW9uOiB7IHR5cGU6IFwicmVxdWVzdC5hcHByb3ZlXCIgfSB9fVxuICBjYW5jZWw9e3sgbGFiZWw6IFwiUmVqZWN0XCIsIGFjdGlvbjogeyB0eXBlOiBcInJlcXVlc3QucmVqZWN0XCIgfSB9fVxuPlxuICA8Q29sIGFsaWduPVwiY2VudGVyXCIgZ2FwPXsyfSBwYWRkaW5nPXt7IHk6IDMgfX0-XG4gICAgPFRleHQgdmFsdWU9e3F1ZXN0aW9ufSBjb2xvcj1cInNlY29uZGFyeVwiIG1heExpbmVzPXszfSAvPlxuICA8L0NvbD5cbjwvQ2FyZD4iLCJkZWZhdWx0U3RhdGUiOnsicXVlc3Rpb24iOiJkbyB5b3Ugd2FudCB0byBhcHByb3ZlIFNlYVBheSB0byBwZXJmb3JtIHRoaXMgYWN0aW9uIGJ5IGNhbGxpbmcgdGhpcyBtY3AgdG9vbD8ifSwic3RhdGVzIjpbXSwic2NoZW1hIjoiaW1wb3J0IHsgeiB9IGZyb20gXCJ6b2RcIlxuXG5jb25zdCBXaWRnZXRTdGF0ZSA9IHouc3RyaWN0T2JqZWN0KHtcbiAgcXVlc3Rpb246IHouc3RyaW5nKClcbn0pXG5cbmV4cG9ydCBkZWZhdWx0IFdpZGdldFN0YXRlIiwianNvblNjaGVtYSI6e30sInNjaGVtYU1vZGUiOiJ6b2QiLCJzY2hlbWFWYWxpZGl0eSI6InZhbGlkIiwidmlld1ZhbGlkaXR5IjoidmFsaWQiLCJkZWZhdWx0U3RhdGVWYWxpZGl0eSI6InZhbGlkIn0"
+}
