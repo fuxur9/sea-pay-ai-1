@@ -90,4 +90,4 @@ out/
 *.temp
 .cache/
 tmp/
-temp/
+temp/backend/.env.backup

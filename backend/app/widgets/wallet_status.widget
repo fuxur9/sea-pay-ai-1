@@ -1,0 +1,280 @@
+{
+  "version": "1.0",
+  "name": "Wallet status",
+  "template": "{\"type\": \"Card\", \"size\": \"md\", \"children\": [{\"type\": \"Col\", \"gap\": 3, \"padding\": 4, \"children\": [{\"type\": \"Row\", \"align\": \"center\", \"gap\": 2, \"children\": [{\"type\": \"Icon\", \"name\": \"wallet\", \"size\": \"md\", \"color\": \"primary\"}, {\"type\": \"Title\", \"value\": \"Wallet Information\", \"size\": \"md\"}, {\"type\": \"Spacer\"}]}, {\"type\": \"Divider\"}, {\"type\": \"Col\", \"gap\": 2, \"children\": [{\"type\": \"Row\", \"gap\": 2, \"align\": \"center\", \"children\": [{\"type\": \"Icon\", \"name\": \"user\", \"size\": \"sm\", \"color\": \"secondary\"}, {\"type\": \"Text\", \"value\": \"Address\", \"size\": \"sm\", \"color\": \"secondary\", \"weight\": \"medium\"}, {\"type\": \"Spacer\"}, {\"type\": \"Text\", \"value\": {{ shortAddress | tojson }}, \"size\": \"sm\", \"family\": \"mono\"}]}, {\"type\": \"Row\", \"gap\": 2, \"align\": \"center\", \"children\": [{\"type\": \"Icon\", \"name\": \"globe\", \"size\": \"sm\", \"color\": \"secondary\"}, {\"type\": \"Text\", \"value\": \"Network\", \"size\": \"sm\", \"color\": \"secondary\", \"weight\": \"medium\"}, {\"type\": \"Spacer\"}, {\"type\": \"Text\", \"value\": {{ network | tojson }}, \"size\": \"sm\"}]}, {\"type\": \"Row\", \"gap\": 2, \"align\": \"center\", \"children\": [{\"type\": \"Icon\", \"name\": \"key\", \"size\": \"sm\", \"color\": \"secondary\"}, {\"type\": \"Text\", \"value\": \"Wallet Type\", \"size\": \"sm\", \"color\": \"secondary\", \"weight\": \"medium\"}, {\"type\": \"Spacer\"}, {\"type\": \"Text\", \"value\": {{ walletType | tojson }}, \"size\": \"sm\"}]}]}, {\"type\": \"Divider\"}, {\"type\": \"Col\", \"gap\": 2, \"children\": [{\"type\": \"Text\", \"value\": \"Balances\", \"size\": \"sm\", \"color\": \"secondary\", \"weight\": \"semibold\"}, {\"type\": \"Row\", \"gap\": 2, \"align\": \"center\", \"children\": [{\"type\": \"Icon\", \"name\": \"currency-dollar\", \"size\": \"sm\", \"color\": \"success\"}, {\"type\": \"Text\", \"value\": \"USDC\", \"size\": \"sm\"}, {\"type\": \"Spacer\"}, {\"type\": \"Text\", \"value\": {{ usdcBalance | tojson }}, \"size\": \"sm\", \"weight\": \"semibold\", \"color\": \"emphasis\", \"family\": \"mono\"}]}, {\"type\": \"Row\", \"gap\": 2, \"align\": \"center\", \"children\": [{\"type\": \"Icon\", \"name\": \"lightning-bolt\", \"size\": \"sm\", \"color\": \"warning\"}, {\"type\": \"Text\", \"value\": \"ETH\", \"size\": \"sm\"}, {\"type\": \"Spacer\"}, {\"type\": \"Text\", \"value\": {{ ethBalance | tojson }}, \"size\": \"sm\", \"weight\": \"semibold\", \"family\": \"mono\"}]}]}, {\"type\": \"Divider\"}, {\"type\": \"Row\", \"gap\": 2, \"align\": \"center\", \"children\": [{\"type\": \"Icon\", \"name\": \"{% if gaslessEnabled %}check-circle{% else %}x-circle{% endif %}\", \"size\": \"sm\", \"color\": \"{% if gaslessEnabled %}success{% else %}gray-400{% endif %}\"}, {\"type\": \"Text\", \"value\": \"Gasless Transfers\", \"size\": \"sm\"}, {\"type\": \"Spacer\"}, {\"type\": \"Text\", \"value\": \"{% if gaslessEnabled %}Enabled{% else %}Disabled{% endif %}\", \"size\": \"sm\", \"weight\": \"medium\", \"color\": \"{% if gaslessEnabled %}success{% else %}secondary{% endif %}\"}]}]}]}",
+  "jsonSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "address": {
+        "type": "string",
+        "minLength": 1
+      },
+      "shortAddress": {
+        "type": "string",
+        "minLength": 1
+      },
+      "network": {
+        "type": "string",
+        "minLength": 1
+      },
+      "usdcBalance": {
+        "type": "string",
+        "minLength": 1
+      },
+      "ethBalance": {
+        "type": "string",
+        "minLength": 1
+      },
+      "walletType": {
+        "type": "string",
+        "minLength": 1
+      },
+      "gaslessEnabled": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "address",
+      "shortAddress",
+      "network",
+      "usdcBalance",
+      "ethBalance",
+      "walletType",
+      "gaslessEnabled"
+    ],
+    "additionalProperties": false
+  },
+  "outputJsonPreview": {
+    "type": "Card",
+    "size": "md",
+    "children": [
+      {
+        "type": "Col",
+        "gap": 3,
+        "padding": 4,
+        "children": [
+          {
+            "type": "Row",
+            "align": "center",
+            "gap": 2,
+            "children": [
+              {
+                "type": "Icon",
+                "name": "wallet",
+                "size": "md",
+                "color": "primary"
+              },
+              {
+                "type": "Title",
+                "value": "Wallet Information",
+                "size": "md"
+              },
+              {
+                "type": "Spacer"
+              }
+            ]
+          },
+          {
+            "type": "Divider"
+          },
+          {
+            "type": "Col",
+            "gap": 2,
+            "children": [
+              {
+                "type": "Row",
+                "gap": 2,
+                "align": "center",
+                "children": [
+                  {
+                    "type": "Icon",
+                    "name": "user",
+                    "size": "sm",
+                    "color": "secondary"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "Address",
+                    "size": "sm",
+                    "color": "secondary",
+                    "weight": "medium"
+                  },
+                  {
+                    "type": "Spacer"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "0x1234...5678",
+                    "size": "sm",
+                    "family": "mono"
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "gap": 2,
+                "align": "center",
+                "children": [
+                  {
+                    "type": "Icon",
+                    "name": "globe",
+                    "size": "sm",
+                    "color": "secondary"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "Network",
+                    "size": "sm",
+                    "color": "secondary",
+                    "weight": "medium"
+                  },
+                  {
+                    "type": "Spacer"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "base-sepolia",
+                    "size": "sm"
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "gap": 2,
+                "align": "center",
+                "children": [
+                  {
+                    "type": "Icon",
+                    "name": "key",
+                    "size": "sm",
+                    "color": "secondary"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "Wallet Type",
+                    "size": "sm",
+                    "color": "secondary",
+                    "weight": "medium"
+                  },
+                  {
+                    "type": "Spacer"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "CDP",
+                    "size": "sm"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Divider"
+          },
+          {
+            "type": "Col",
+            "gap": 2,
+            "children": [
+              {
+                "type": "Text",
+                "value": "Balances",
+                "size": "sm",
+                "color": "secondary",
+                "weight": "semibold"
+              },
+              {
+                "type": "Row",
+                "gap": 2,
+                "align": "center",
+                "children": [
+                  {
+                    "type": "Icon",
+                    "name": "currency-dollar",
+                    "size": "sm",
+                    "color": "success"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "USDC",
+                    "size": "sm"
+                  },
+                  {
+                    "type": "Spacer"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "100.000000 USDC",
+                    "size": "sm",
+                    "weight": "semibold",
+                    "color": "emphasis",
+                    "family": "mono"
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "gap": 2,
+                "align": "center",
+                "children": [
+                  {
+                    "type": "Icon",
+                    "name": "lightning-bolt",
+                    "size": "sm",
+                    "color": "warning"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "ETH",
+                    "size": "sm"
+                  },
+                  {
+                    "type": "Spacer"
+                  },
+                  {
+                    "type": "Text",
+                    "value": "0.050000 ETH",
+                    "size": "sm",
+                    "weight": "semibold",
+                    "family": "mono"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Divider"
+          },
+          {
+            "type": "Row",
+            "gap": 2,
+            "align": "center",
+            "children": [
+              {
+                "type": "Icon",
+                "name": "check-circle",
+                "size": "sm",
+                "color": "success"
+              },
+              {
+                "type": "Text",
+                "value": "Gasless Transfers",
+                "size": "sm"
+              },
+              {
+                "type": "Spacer"
+              },
+              {
+                "type": "Text",
+                "value": "Enabled",
+                "size": "sm",
+                "weight": "medium",
+                "color": "success"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

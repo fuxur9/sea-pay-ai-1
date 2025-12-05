@@ -14,7 +14,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Annotated, Any, Callable, TypedDict, NotRequired, Awaitable
+from typing import Annotated, Any, Callable, TypedDict, Awaitable
+
+try:
+    from typing import NotRequired  # Python 3.11+
+except ImportError:
+    from typing_extensions import NotRequired  # Python < 3.11
 from dataclasses import dataclass
 from agents import Agent, Runner, HostedMCPTool, ModelSettings, RunContextWrapper, StopAtTools, function_tool, handoff, MCPToolApprovalFunctionResult, MCPToolApprovalRequest
 from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
@@ -29,6 +34,14 @@ from ..memory_store import MemoryStore
 from ..request_context import RequestContext
 from ..widgets.hotel_card_widget import build_hotel_card_widget
 from ..widgets.tool_approval_widget import build_approval_widget
+from ..widgets.wallet_status_widget import build_wallet_status_widget
+from ..wallet.wallet_tools import (
+    get_wallet_info,
+    check_wallet_balance,
+    pay_invoice_with_usdc,
+    get_wallet_activity,
+    get_wallet_address,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -293,6 +306,59 @@ async def show_hotel_cards(
         }
 
 
+@function_tool(
+    description_override=(
+        "Display wallet status information as a visual card widget. "
+        "Shows wallet address, network, USDC/ETH balances, and gasless transfer status. "
+        "Call this to show the user their wallet information."
+    )
+)
+async def show_wallet_status(
+    ctx: RunContextWrapper[SeaPayContext],
+) -> dict[str, Any]:
+    """
+    Display wallet status information as a widget.
+    
+    This tool fetches wallet information and displays it in a formatted card widget
+    showing address, network, balances, and capabilities.
+    """
+    logger.info("[TOOL CALL] show_wallet_status")
+    
+    try:
+        # Import wallet manager to get wallet info directly
+        from ..wallet.wallet_config import get_wallet_manager
+        
+        wallet_manager = get_wallet_manager()
+        wallet_info_result = await wallet_manager.get_wallet_info()
+        
+        if not wallet_info_result.get("success"):
+            return {
+                "message": "Failed to retrieve wallet information",
+                "error": wallet_info_result.get("error"),
+            }
+        
+        # Build the wallet status widget
+        widget = build_wallet_status_widget(wallet_info_result)
+        
+        # Stream the widget to the chat
+        address = wallet_info_result.get("address", "Unknown")
+        short_address = f"{address[:6]}...{address[-4:]}" if len(address) > 10 else address
+        await ctx.context.stream_widget(
+            widget,
+            copy_text=f"Wallet: {short_address}"
+        )
+        
+        return {
+            "message": "Wallet status displayed successfully",
+            "address": address,
+        }
+    except Exception as e:
+        logger.error("[ERROR] Failed to show wallet status: %s", e)
+        return {
+            "message": f"Error displaying wallet status: {str(e)}",
+        }
+
+
 # @function_tool(
 #     description_override=(
 #         "Show an approval request widget before making tool calls that require user approval. "
@@ -402,37 +468,65 @@ check_availability_agent = Agent[SeaPayContext](
     model_settings=ModelSettings(store=True),
 )
 
-# 5. Reserve + Payment Agent - Handles payment and retry (diagram steps 5-9)
+# 5. Reserve + Payment Agent - Handles payment with AgentKit wallet (diagram steps 5-9)
 RESERVE_PAYMENT_INSTRUCTIONS = """
-You are a payment executor for SeaPay hotel reservations.
+You are a payment executor for SeaPay hotel reservations using AgentKit wallet management.
 
 Your workflow:
-1. You receive payment details from a previous 402 response (amount, currency, network, instructions), the amount should be divided by 1000000 to get the amount in USDC, the currency should always be USDC, the network should always be base-sepolia
-2. You MUST call the `make_payment` tool with the booking details:
-   - hotelName: The exact hotel name
-   - checkIn: Check-in date (YYYY-MM-DD)
-   - checkOut: Check-out date (YYYY-MM-DD)
-   - guests: Number of guests (as integer)
-3. The `make_payment` tool automatically handles payment via x402
-4. After the tool completes, show the result:
-   - If successful: Display the reservation confirmation with reservationId, hotel, dates, guests, totalPrice
-   - If error: Explain what went wrong and next steps
-5. ALWAYS thank the user after showing the result (e.g., "Thank you for using SeaPay! Your reservation has been confirmed." or "Thank you for your patience. Unfortunately, the payment could not be processed.")
+1. You receive payment details from a previous 402 response:
+   - amount: Payment amount in micro-USDC (integer)
+   - currency: Always "USDC"
+   - network: Always "base-sepolia" for testnet
+   - pay_to: Destination merchant address
+   - Booking details: hotelName, checkIn, checkOut, guests
+
+2. FIRST, check wallet status:
+   - Call `get_wallet_info` to verify wallet balance and network
+   - The wallet must have sufficient USDC for the payment
+   - Check that gasless transfers are enabled
+
+3. Convert the amount:
+   - The 402 response provides amount in micro-USDC (integer)
+   - DIVIDE by 1,000,000 to get the amount in USDC (e.g., 20000 → 0.02 USDC)
+
+4. Execute payment:
+   - Call `pay_invoice_with_usdc` with:
+     - amount_usdc: The converted amount (e.g., 0.02)
+     - destination_address: The merchant address from `pay_to`
+     - memo: Reservation ID or hotel name
+     - network: The network from 402 response (usually "base-sepolia")
+   - This tool will show an approval widget and wait for user confirmation
+   - The tool uses gasless USDC transfers on Base network
+
+5. After payment completes:
+   - If successful: Show the transaction hash and confirmation details
+   - If insufficient balance: Explain the shortfall and suggest funding the wallet
+   - If error: Explain what went wrong and suggest next steps
+
+6. ALWAYS thank the user after showing the result
+
+Alternative Flow (Legacy):
+- If AgentKit payment fails, you can fallback to calling `make_payment` tool which uses x402
+- This ensures backward compatibility during migration
 
 Rules:
-- After `make_payment` completes, ALWAYS show the result (success or error details)
-- ALWAYS thank the user after showing the payment result
-- ALWAYS call the `make_payment` tool (it handles x402 payments automatically)
-- Use the same booking details as the original reservation attempt
-- The tool handles payment automatically, so you don't need to process payments manually
-- Clearly communicate success or failure to the user
+- ALWAYS check wallet balance BEFORE attempting payment
+- ALWAYS convert micro-USDC to USDC by dividing by 1,000,000
+- ALWAYS show clear payment status (success/failure with details)
+- ALWAYS thank the user after showing the result
+- If balance is insufficient, clearly state the required amount vs. available amount
 """
 
 payment_agent = Agent[SeaPayContext](
     model="gpt-4.1-mini",
     name="Make Payment",
     instructions=RESERVE_PAYMENT_INSTRUCTIONS,
-    tools=[make_payment],  # Uses make_payment tool
+    tools=[
+        get_wallet_info,
+        check_wallet_balance,
+        pay_invoice_with_usdc,
+        make_payment,  # Keep for backward compatibility
+    ],
     model_settings=ModelSettings(store=True),
 )
 
@@ -481,9 +575,9 @@ reserve_agent = Agent[SeaPayContext](
 SEAPAY_SUPERVISOR_INSTRUCTIONS = f"""
 {RECOMMENDED_PROMPT_PREFIX}
 
-You are SeaPay, a hotel booking assistant for a crypto-enabled hotel search and booking platform.
+You are SeaPay, a hotel booking assistant for a crypto-enabled hotel search and booking platform with integrated wallet management.
 
-Your primary role is to orchestrate the complete booking workflow.
+Your primary role is to orchestrate the complete booking workflow with wallet awareness.
 
 Your workflow proceeds as follows:
 1.  **Gather Information:** Politely ask the user for their destination, check-in and check-out dates, number of guests, and any other preferences.
@@ -493,11 +587,17 @@ Your workflow proceeds as follows:
 3.  **Reserve Hotel:** After the user selects a hotel, `transfer_to_reserve_hotel` immediately.
 4.  **Handle Payment:** If a reservation requires payment, `transfer_to_make_payment` immediately.
 
+Wallet Management:
+- You can show wallet information using the `show_wallet_status` tool
+- On first booking in a conversation, consider showing wallet status to the user
+- The wallet is managed using Coinbase AgentKit and supports gasless USDC transfers on Base network
+
 Rules:
 - Always assume the user wants to proceed through the booking flow.
 - ONLY ask for essential information needed to complete the booking, DO NOT ask about optional preferences.
 - You should ONLY delegate to one specialized agent at a time
 - The price shown is the TOTAL price for the stay as provided by the MCP
+- All payments are in USDC on Base network
 """
 
 
@@ -506,7 +606,10 @@ seapay_agent = Agent[SeaPayContext](
     model="gpt-5-mini",
     name="SeaPay Hotel Booking Agent",
     instructions=SEAPAY_SUPERVISOR_INSTRUCTIONS,
-    tools=[],
+    tools=[
+        show_wallet_status,
+        get_wallet_address,
+    ],
     handoffs=[
         check_availability_agent,
         reserve_agent,
